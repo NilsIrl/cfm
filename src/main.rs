@@ -6,7 +6,13 @@ use structopt::{clap::AppSettings, StructOpt};
 #[derive(StructOpt)]
 #[structopt(setting = AppSettings::TrailingVarArg)]
 struct App {
-    #[structopt(short, long, value_delimiter = ":", env = "CDPATH")]
+    #[structopt(
+        short,
+        long,
+        require_delimiter = true,
+        value_delimiter = ":",
+        env = "CDPATH"
+    )]
     path: Vec<String>,
 
     #[structopt(allow_hyphen_values = true, use_delimiter = false, required = true)]
