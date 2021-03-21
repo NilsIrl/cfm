@@ -24,8 +24,6 @@ fn main() {
             continue 'outer;
         }
 
-        // TODO: improve performance with possible use of fstatat(2)
-        // There is nothing in the rust standard library that makes use of this for the moment
         for path in &paths {
             let fullpath = path.join(option);
             if fullpath.exists() {
