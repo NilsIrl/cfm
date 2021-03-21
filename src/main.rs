@@ -14,7 +14,7 @@ struct App {
 }
 
 fn main() {
-    let rule_regex = Regex::new(r"\A(\d*)([-+]?)([t])\z").unwrap();
+    let rule_regex = Regex::new(r"\A(.+):(\d*)([-+]?)([t])\z").unwrap();
     let app = App::from_args();
     let mut commands = Command::new(&app.cmd[0]);
     let paths = app.path.iter().map(Path::new).collect::<Vec<_>>();
@@ -32,33 +32,27 @@ fn main() {
             }
         }
 
-        // TODO use regex for full option or just for rule
-        // Could fix the need to use nightly?
-        if let Some((basepath, rule)) = option.rsplit_once(':') {
-            // TODO if rule is invalid, what to do? panic or just add option to end of command
-            let caps = rule_regex.captures(rule).unwrap();
-            let count_capture = caps.get(1).unwrap();
-            let count = if count_capture.start() == count_capture.end() {
-                1
-            } else {
-                count_capture.as_str().parse().unwrap()
-            };
-            let reverse_capture = caps.get(2).unwrap();
-            // TODO which one should be the default?
-            let reverse = if reverse_capture.start() == reverse_capture.end() {
-                false
-            } else {
-                if reverse_capture.as_str() == "+" {
-                    false
+        if let Some(caps) = rule_regex.captures(option) {
+            let basepath = caps.get(1).unwrap().as_str();
+            let count = {
+                let count_capture = caps.get(2).unwrap();
+                if count_capture.start() == count_capture.end() {
+                    1
                 } else {
-                    // must be "-"
-                    true
+                    count_capture.as_str().parse().unwrap()
                 }
+            };
+            let reverse = {
+                let reverse_capture = caps.get(3).unwrap();
+                // "+" is true
+                // true reverses
+                // Defaults to false
+                reverse_capture.start() != reverse_capture.end() && reverse_capture.as_str() == "+"
             };
             for path in &paths {
                 let fullpath = path.join(basepath);
                 if fullpath.exists() {
-                    match caps.get(3).unwrap().as_str() {
+                    match caps.get(4).unwrap().as_str() {
                         "t" => {
                             if let Ok(dirlist) = fullpath.read_dir() {
                                 let mut dirlist: Vec<_> =
